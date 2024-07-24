@@ -1,5 +1,6 @@
 import SwiftUI
 import CoreLocation
+import CoreData
 
 extension DateFormatter {
     static var short: DateFormatter {
@@ -11,96 +12,130 @@ extension DateFormatter {
 }
 
 struct ContentView: View {
+    @Environment(\.managedObjectContext) private var viewContext
+    @FetchRequest(
+        sortDescriptors: [NSSortDescriptor(keyPath: \AppLaunch.launchDate, ascending: true)],
+        animation: .default)
+    private var appLaunches: FetchedResults<AppLaunch>
+
     @StateObject private var locationManager = LocationManager()
     @State private var data: String = "Loading..."
     @State private var lastUpdated: Date?
-    @State private var firstLaunchDate: Date?
     @State private var chartURL: URL?
-
+    
     var body: some View {
-        ScrollView {
+        NavigationView {
             VStack(spacing: 20) {
                 Image(systemName: "globe")
                     .imageScale(.large)
                     .foregroundColor(.accentColor)
-                    .padding(.top, 20)
-
+                
                 Text(data)
                     .font(.headline)
-                    .padding(.horizontal)
+                    .padding()
                 
                 if let location = locationManager.location {
                     Text("Location: \(location.coordinate.latitude), \(location.coordinate.longitude)")
                         .font(.subheadline)
                         .foregroundColor(.gray)
-                        .padding(.bottom, 5)
+                    
+                    if let address = locationManager.address {
+                        Text(address)
+                            .font(.subheadline)
+                            .foregroundColor(.gray)
+                    }
                 }
                 
-                Text(locationManager.address)
-                    .font(.subheadline)
-                    .foregroundColor(.gray)
-                    .padding(.bottom, 5)
-
-                if let firstLaunchDate = firstLaunchDate {
-                    Text("First launched: \(firstLaunchDate, formatter: DateFormatter.short)")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                        .padding(.bottom, 5)
-                }
-
                 if let lastUpdated = lastUpdated {
                     Text("Last updated: \(lastUpdated, formatter: DateFormatter.short)")
                         .font(.caption)
                         .foregroundColor(.secondary)
-                        .padding(.bottom, 20)
                 }
-
+                
                 Button(action: {
                     fetchData()
                 }) {
                     Text("Refresh Data")
                         .padding()
-                        .frame(maxWidth: .infinity)
                         .background(Color.blue)
                         .foregroundColor(.white)
                         .cornerRadius(10)
                 }
-                .padding(.horizontal)
                 
                 if let chartURL = chartURL {
                     AsyncImage(url: chartURL) { image in
                         image
                             .resizable()
-                            .scaledToFit()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(height: 200)
+                            .padding()
                     } placeholder: {
                         ProgressView()
                     }
-                    .frame(height: 300)
-                    .padding(.horizontal)
-                    .background(Color(UIColor.systemGray6))
-                    .cornerRadius(10)
-                    .shadow(radius: 5)
                 } else {
                     Text("No data available")
                         .foregroundColor(.gray)
                 }
+                
+                if let firstLaunch = appLaunches.first?.launchDate {
+                    Text("First Launch: \(firstLaunch, formatter: DateFormatter.short)")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+                
+                NavigationLink(destination: DatabaseView()) {
+                    Text("View Database Entries")
+                        .padding()
+                        .background(Color.green)
+                        .foregroundColor(.white)
+                        .cornerRadius(10)
+                }
             }
             .padding()
-        }
-        .onAppear {
-            loadData()
+            .onAppear {
+                loadData()
+            }
         }
     }
-
+    
     func fetchData() {
-        // Generate random data for the chart
-        let randomData = (1...6).map { _ in CGFloat.random(in: 0...100) }
-        self.chartURL = generateChartURL(with: randomData)
+        let randomData = (1...10).map { _ in CGFloat.random(in: 1...10) }
         self.data = "Fetched Random Data"
         self.lastUpdated = Date()
-        saveData(data: self.data, lastUpdated: self.lastUpdated, chartData: randomData)
+        saveData(data: self.data, lastUpdated: self.lastUpdated!, chartData: randomData)
+        self.chartURL = generateChartURL(with: randomData)
     }
-
+    
+    func loadData() {
+        if let savedLastUpdated = UserDefaults.standard.object(forKey: "lastUpdated") as? Date {
+            self.data = UserDefaults.standard.string(forKey: "savedData") ?? "No data"
+            self.lastUpdated = savedLastUpdated
+            if let savedChartData = UserDefaults.standard.array(forKey: "chartData") as? [CGFloat] {
+                self.chartURL = generateChartURL(with: savedChartData)
+            }
+        } else {
+            fetchData()
+        }
+    }
+    
+    func saveData(data: String, lastUpdated: Date, chartData: [CGFloat]) {
+        UserDefaults.standard.set(data, forKey: "savedData")
+        UserDefaults.standard.set(lastUpdated, forKey: "lastUpdated")
+        UserDefaults.standard.set(chartData, forKey: "chartData")
+        
+        if appLaunches.isEmpty {
+            let newAppLaunch = AppLaunch(context: viewContext)
+            newAppLaunch.launchDate = Date()
+            newAppLaunch.lastRefreshed = lastUpdated
+            do {
+                try viewContext.save()
+            } catch {
+                let nsError = error as NSError
+                fatalError("Unresolved error \(nsError), \(nsError.userInfo)")
+            }
+        }
+    }
+    
     func generateChartURL(with data: [CGFloat]) -> URL? {
         let labels = data.enumerated().map { "\($0.offset + 1)" }
         let chartData = data.map { "\($0)" }
@@ -109,7 +144,8 @@ struct ContentView: View {
             "data": [
                 "labels": labels,
                 "datasets": [
-                    ["label": "Random Data", "data": chartData]
+                    ["label": "Random Data",
+                     "data": chartData]
                 ]
             ]
         ] as [String : Any]
@@ -117,43 +153,15 @@ struct ContentView: View {
         if let jsonData = try? JSONSerialization.data(withJSONObject: chartConfig),
            let jsonString = String(data: jsonData, encoding: .utf8) {
             let urlString = "https://quickchart.io/chart?c=\(jsonString)"
-                .addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
-            return URL(string: urlString)
+            return URL(string: urlString.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)!)
         }
         return nil
-    }
-
-    func loadData() {
-        if let savedData = UserDefaults.standard.string(forKey: "savedData") {
-            self.data = savedData
-        }
-        if let lastUpdated = UserDefaults.standard.object(forKey: "lastUpdated") as? Date {
-            self.lastUpdated = lastUpdated
-        }
-        if let firstLaunchDate = UserDefaults.standard.object(forKey: "firstLaunchDate") as? Date {
-            self.firstLaunchDate = firstLaunchDate
-        } else {
-            self.firstLaunchDate = Date()
-            UserDefaults.standard.set(self.firstLaunchDate, forKey: "firstLaunchDate")
-        }
-        if let savedEntries = UserDefaults.standard.array(forKey: "chartData") as? [CGFloat] {
-            self.chartURL = generateChartURL(with: savedEntries)
-        } else {
-            fetchData()
-        }
-    }
-
-    func saveData(data: String, lastUpdated: Date?, chartData: [CGFloat]) {
-        UserDefaults.standard.set(data, forKey: "savedData")
-        if let lastUpdated = lastUpdated {
-            UserDefaults.standard.set(lastUpdated, forKey: "lastUpdated")
-        }
-        UserDefaults.standard.set(chartData, forKey: "chartData")
     }
 }
 
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
         ContentView()
+            .environment(\.managedObjectContext, PersistenceController.preview.container.viewContext)
     }
 }

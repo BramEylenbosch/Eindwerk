@@ -2,52 +2,46 @@ import Foundation
 import CoreLocation
 
 class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
-    private let manager = CLLocationManager()
+    private let locationManager = CLLocationManager()
     
-    @Published var location: CLLocation?
-    @Published var address: String = ""
+    @Published var location: CLLocation? {
+        didSet {
+            fetchAddress(from: location)
+        }
+    }
+    @Published var address: String?
 
     override init() {
         super.init()
-        manager.delegate = self
-        manager.desiredAccuracy = kCLLocationAccuracyBest
-        manager.requestWhenInUseAuthorization()
-        manager.startUpdatingLocation()
+        locationManager.delegate = self
+        locationManager.desiredAccuracy = kCLLocationAccuracyBest
+        locationManager.requestWhenInUseAuthorization()
+        locationManager.startUpdatingLocation()
     }
-    
+
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-        guard let location = locations.first else { return }
+        guard let location = locations.last else { return }
         self.location = location
-        fetchAddress(from: location)
     }
-    
-    func fetchAddress(from location: CLLocation) {
+
+    func fetchAddress(from location: CLLocation?) {
+        guard let location = location else { return }
         let geocoder = CLGeocoder()
         geocoder.reverseGeocodeLocation(location) { placemarks, error in
-            guard error == nil else {
-                print("Failed to reverse geocode location: \(String(describing: error))")
-                return
+            if let error = error {
+                self.address = "Error fetching address: \(error.localizedDescription)"
+            } else if let placemark = placemarks?.first {
+                self.address = [
+                    placemark.name,
+                    placemark.locality,
+                    placemark.administrativeArea,
+                    placemark.country
+                ]
+                .compactMap { $0 }
+                .joined(separator: ", ")
+            } else {
+                self.address = "No address found"
             }
-            self.address = placemarks?.first?.compactAddress ?? "Unknown address"
         }
-    }
-}
-
-extension CLPlacemark {
-    var compactAddress: String? {
-        if let name = name {
-            var result = name
-            if let street = thoroughfare {
-                result += ", \(street)"
-            }
-            if let city = locality {
-                result += ", \(city)"
-            }
-            if let country = country {
-                result += ", \(country)"
-            }
-            return result
-        }
-        return nil
     }
 }
