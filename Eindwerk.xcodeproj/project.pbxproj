@@ -7,13 +7,29 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		2575DF592C51340000773D50 /* LocationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2575DF582C51340000773D50 /* LocationManager.swift */; };
 		25FDE2F42C511994001CD71A /* EindwerkApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25FDE2F32C511994001CD71A /* EindwerkApp.swift */; };
 		25FDE2F62C511994001CD71A /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25FDE2F52C511994001CD71A /* ContentView.swift */; };
 		25FDE2F82C511995001CD71A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 25FDE2F72C511995001CD71A /* Assets.xcassets */; };
 		25FDE2FB2C511995001CD71A /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 25FDE2FA2C511995001CD71A /* Preview Assets.xcassets */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXCopyFilesBuildPhase section */
+		257FF9122C51437500E1F444 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
+		2575DF582C51340000773D50 /* LocationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationManager.swift; sourceTree = "<group>"; };
+		2575DF5E2C5139B100773D50 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		25FDE2F02C511994001CD71A /* Eindwerk.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Eindwerk.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		25FDE2F32C511994001CD71A /* EindwerkApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EindwerkApp.swift; sourceTree = "<group>"; };
 		25FDE2F52C511994001CD71A /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -51,7 +67,9 @@
 		25FDE2F22C511994001CD71A /* Eindwerk */ = {
 			isa = PBXGroup;
 			children = (
+				2575DF5E2C5139B100773D50 /* Info.plist */,
 				25FDE2F32C511994001CD71A /* EindwerkApp.swift */,
+				2575DF582C51340000773D50 /* LocationManager.swift */,
 				25FDE2F52C511994001CD71A /* ContentView.swift */,
 				25FDE2F72C511995001CD71A /* Assets.xcassets */,
 				25FDE2F92C511995001CD71A /* Preview Content */,
@@ -77,12 +95,15 @@
 				25FDE2EC2C511994001CD71A /* Sources */,
 				25FDE2ED2C511994001CD71A /* Frameworks */,
 				25FDE2EE2C511994001CD71A /* Resources */,
+				257FF9122C51437500E1F444 /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 			);
 			name = Eindwerk;
+			packageProductDependencies = (
+			);
 			productName = Eindwerk;
 			productReference = 25FDE2F02C511994001CD71A /* Eindwerk.app */;
 			productType = "com.apple.product-type.application";
@@ -111,6 +132,8 @@
 				Base,
 			);
 			mainGroup = 25FDE2E72C511994001CD71A;
+			packageReferences = (
+			);
 			productRefGroup = 25FDE2F12C511994001CD71A /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -139,6 +162,7 @@
 			files = (
 				25FDE2F62C511994001CD71A /* ContentView.swift in Sources */,
 				25FDE2F42C511994001CD71A /* EindwerkApp.swift in Sources */,
+				2575DF592C51340000773D50 /* LocationManager.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -275,6 +299,7 @@
 				DEVELOPMENT_TEAM = X62YS29KQK;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Eindwerk/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -304,6 +329,7 @@
 				DEVELOPMENT_TEAM = X62YS29KQK;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Eindwerk/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
