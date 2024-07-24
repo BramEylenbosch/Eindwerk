@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		256B0EDA2C5157C500A2F488 /* AppDataModel.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 256B0ED82C5157C500A2F488 /* AppDataModel.xcdatamodeld */; };
+		256B0EDC2C5157FE00A2F488 /* PersistenceController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 256B0EDB2C5157FE00A2F488 /* PersistenceController.swift */; };
+		256B0EE42C51622C00A2F488 /* DatabaseView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 256B0EE32C51622C00A2F488 /* DatabaseView.swift */; };
 		2575DF592C51340000773D50 /* LocationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2575DF582C51340000773D50 /* LocationManager.swift */; };
 		25FDE2F42C511994001CD71A /* EindwerkApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25FDE2F32C511994001CD71A /* EindwerkApp.swift */; };
 		25FDE2F62C511994001CD71A /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25FDE2F52C511994001CD71A /* ContentView.swift */; };
@@ -28,6 +31,9 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		256B0ED92C5157C500A2F488 /* AppDataModel.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = AppDataModel.xcdatamodel; sourceTree = "<group>"; };
+		256B0EDB2C5157FE00A2F488 /* PersistenceController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersistenceController.swift; sourceTree = "<group>"; };
+		256B0EE32C51622C00A2F488 /* DatabaseView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DatabaseView.swift; sourceTree = "<group>"; };
 		2575DF582C51340000773D50 /* LocationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationManager.swift; sourceTree = "<group>"; };
 		2575DF5E2C5139B100773D50 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		25FDE2F02C511994001CD71A /* Eindwerk.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Eindwerk.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -71,6 +77,9 @@
 				25FDE2F32C511994001CD71A /* EindwerkApp.swift */,
 				2575DF582C51340000773D50 /* LocationManager.swift */,
 				25FDE2F52C511994001CD71A /* ContentView.swift */,
+				256B0EE32C51622C00A2F488 /* DatabaseView.swift */,
+				256B0ED82C5157C500A2F488 /* AppDataModel.xcdatamodeld */,
+				256B0EDB2C5157FE00A2F488 /* PersistenceController.swift */,
 				25FDE2F72C511995001CD71A /* Assets.xcassets */,
 				25FDE2F92C511995001CD71A /* Preview Content */,
 			);
@@ -161,8 +170,11 @@
 			buildActionMask = 2147483647;
 			files = (
 				25FDE2F62C511994001CD71A /* ContentView.swift in Sources */,
+				256B0EE42C51622C00A2F488 /* DatabaseView.swift in Sources */,
+				256B0EDA2C5157C500A2F488 /* AppDataModel.xcdatamodeld in Sources */,
 				25FDE2F42C511994001CD71A /* EindwerkApp.swift in Sources */,
 				2575DF592C51340000773D50 /* LocationManager.swift in Sources */,
+				256B0EDC2C5157FE00A2F488 /* PersistenceController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -370,6 +382,20 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCVersionGroup section */
+		256B0ED82C5157C500A2F488 /* AppDataModel.xcdatamodeld */ = {
+			isa = XCVersionGroup;
+			children = (
+				256B0ED92C5157C500A2F488 /* AppDataModel.xcdatamodel */,
+			);
+			currentVersion = 256B0ED92C5157C500A2F488 /* AppDataModel.xcdatamodel */;
+			name = AppDataModel.xcdatamodeld;
+			path = /Users/bram/Documents/Eindwerk/Eindwerk/AppDataModel.xcdatamodeld;
+			sourceTree = "<group>";
+			versionGroupType = wrapper.xcdatamodel;
+		};
+/* End XCVersionGroup section */
 	};
 	rootObject = 25FDE2E82C511994001CD71A /* Project object */;
 }
