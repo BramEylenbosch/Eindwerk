@@ -1,4 +1,17 @@
 import SwiftUI
+import CoreLocation
+
+struct WeatherData: Codable {
+    struct Main: Codable {
+        let temp: Double?
+        let humidity: Int?
+    }
+    struct Weather: Codable {
+        let description: String?
+    }
+    let main: Main?
+    let weather: [Weather]?
+}
 
 struct DataView: View {
     @Environment(\.managedObjectContext) private var viewContext
@@ -8,64 +21,89 @@ struct DataView: View {
     private var appLaunches: FetchedResults<AppLaunch>
     
     @StateObject private var locationManager = LocationManager()
-    @State private var data: String = "Loading..."
     @State private var lastUpdated: Date?
-    @State private var chartURL: URL?
+    @State private var weatherData: WeatherData?
     @State private var timer: Timer?
     
     var body: some View {
-        VStack(spacing: 20) {
-            Text(data)
-                .font(.headline)
-                .padding()
+        ZStack {
+            // Voeg hier de achtergrondafbeelding toe
+            Image("360_F_461232389_XCYvca9n9P437nm3FrCsEIapG4SrhufP")
+                .resizable()
+                .scaledToFill()
+                .edgesIgnoringSafeArea(.all) // Zorg ervoor dat de afbeelding de volledige achtergrond bedekt
             
-            if let location = locationManager.location {
-                Text("Location: \(location.coordinate.latitude), \(location.coordinate.longitude)")
-                    .font(.subheadline)
-                    .foregroundColor(.gray)
+            VStack(spacing: 20) {
+                Spacer()
                 
-                if let address = locationManager.address {
-                    Text(address)
-                        .font(.subheadline)
-                        .foregroundColor(.gray)
-                }
-            }
-            
-            if let lastUpdated = lastUpdated {
-                Text("Last updated: \(lastUpdated, formatter: DateFormatter.short)")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-            }
-            
-            Button(action: {
-                fetchData()
-            }) {
-                Text("Refresh Data")
+                if let weatherData = weatherData, let main = weatherData.main, let weather = weatherData.weather?.first {
+                    VStack {
+                        Image(systemName: weatherIcon(for: weather.description))
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 100, height: 100)
+                            .foregroundColor(.yellow)
+                        
+                        Text("Temperature: \(main.temp ?? 0.0, specifier: "%.1f")°C")
+                            .font(.largeTitle)
+                            .foregroundColor(.white)
+                        
+                        Text("Humidity: \(main.humidity ?? 0)%")
+                            .font(.subheadline)
+                            .foregroundColor(.white)
+                        
+                        Text("Condition: \(weather.description?.capitalized ?? "N/A")")
+                            .font(.subheadline)
+                            .foregroundColor(.white)
+                    }
                     .padding()
-                    .background(Color.blue)
-                    .foregroundColor(.white)
-                    .cornerRadius(10)
-            }
-            
-            if let chartURL = chartURL {
-                AsyncImage(url: chartURL) { image in
-                    image
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(height: 200)
-                        .padding()
-                } placeholder: {
-                    ProgressView()
+                    .cornerRadius(20)
+                } else {
+                    Text("No weather data available")
+                        .foregroundColor(.gray)
+                        .cornerRadius(10)
                 }
-            } else {
-                Text("No data available")
-                    .foregroundColor(.gray)
+                
+                if let location = locationManager.location {
+                    Text("Location: \(location.coordinate.latitude), \(location.coordinate.longitude)")
+                        .font(.subheadline)
+                        .foregroundColor(.black)
+                        .cornerRadius(10)
+                    
+                    if let address = locationManager.address {
+                        Text(address)
+                            .font(.subheadline)
+                            .foregroundColor(.black)
+                            .cornerRadius(10)
+                    }
+                } else {
+                    Text("Fetching location...")
+                        .foregroundColor(.gray)
+                        .cornerRadius(10)
+                }
+                
+                Button(action: {
+                    fetchData()
+                }) {
+                    Text("Refresh Data")
+                        .padding()
+                        .background(Color.blue)
+                        .foregroundColor(.white)
+                        .cornerRadius(10)
+                }
+                
+                Spacer()
+                if let lastUpdated = lastUpdated {
+                    Text("Last updated: \(lastUpdated, formatter: DateFormatter.short)")
+                        .font(.caption)
+                        .foregroundColor(.black)
+                        .cornerRadius(10)
+                }
+                
+                Spacer()
             }
-            
-            Spacer()
+            .padding()
         }
-        .padding()
-        .background(Color(UIColor.systemGroupedBackground))
         .onAppear {
             loadData()
             startTimer()
@@ -76,67 +114,84 @@ struct DataView: View {
     }
     
     func fetchData() {
-        let randomData = (1...10).map { _ in CGFloat.random(in: 1...10) }
-        self.data = "Fetched Data"
-        self.lastUpdated = Date()
-        saveData(data: self.data, lastUpdated: self.lastUpdated!, chartData: randomData)
-        self.chartURL = generateChartURL(with: randomData)
+        guard let location = locationManager.location else {
+            print("Location not available")
+            return
+        }
+        
+        let apiKey = "eb7a9979f66bf3da659cae552e1f2596"
+        let latitude = location.coordinate.latitude
+        let longitude = location.coordinate.longitude
+        let urlString = "https://api.openweathermap.org/data/2.5/weather?lat=\(latitude)&lon=\(longitude)&units=metric&appid=\(apiKey)"
+        
+        guard let url = URL(string: urlString) else {
+            print("Invalid URL")
+            return
+        }
+        
+        let task = URLSession.shared.dataTask(with: url) { data, response, error in
+            if let error = error {
+                print("Error fetching weather data: \(error)")
+                return
+            }
+            
+            guard let data = data else {
+                print("No data received")
+                return
+            }
+            
+            do {
+                let weatherData = try JSONDecoder().decode(WeatherData.self, from: data)
+                DispatchQueue.main.async {
+                    self.weatherData = weatherData
+                    self.lastUpdated = Date()
+                    saveData(lastUpdated: self.lastUpdated!, weatherData: weatherData)
+                }
+            } catch {
+                print("Failed to decode weather data: \(error)")
+                if let jsonString = String(data: data, encoding: .utf8) {
+                    print("Received JSON: \(jsonString)")
+                }
+            }
+        }
+        
+        task.resume()
     }
     
     func loadData() {
-        if let savedData = UserDefaults.standard.string(forKey: "savedData"),
-           let savedLastUpdated = UserDefaults.standard.object(forKey: "lastUpdated") as? Date {
-            self.data = savedData
+        if let savedLastUpdated = UserDefaults.standard.object(forKey: "lastUpdated") as? Date,
+           let savedWeatherData = UserDefaults.standard.data(forKey: "savedWeatherData") {
             self.lastUpdated = savedLastUpdated
-            if let savedChartData = UserDefaults.standard.array(forKey: "chartData") as? [CGFloat] {
-                self.chartURL = generateChartURL(with: savedChartData)
+            do {
+                let weatherData = try JSONDecoder().decode(WeatherData.self, from: savedWeatherData)
+                self.weatherData = weatherData
+            } catch {
+                print("Failed to decode saved weather data: \(error)")
             }
         } else {
             fetchData()
         }
     }
     
-    func saveData(data: String, lastUpdated: Date, chartData: [CGFloat]) {
-        UserDefaults.standard.set(data, forKey: "savedData")
-        UserDefaults.standard.set(lastUpdated, forKey: "lastUpdated")
-        UserDefaults.standard.set(chartData, forKey: "chartData")
-        
-        if let appLaunch = appLaunches.first {
-            appLaunch.lastRefreshed = lastUpdated
-        } else {
-            let newAppLaunch = AppLaunch(context: viewContext)
-            newAppLaunch.launchDate = Date()
-            newAppLaunch.lastRefreshed = lastUpdated
-        }
-        
+    func saveData(lastUpdated: Date, weatherData: WeatherData) {
         do {
+            let encodedWeatherData = try JSONEncoder().encode(weatherData)
+            UserDefaults.standard.set(lastUpdated, forKey: "lastUpdated")
+            UserDefaults.standard.set(encodedWeatherData, forKey: "savedWeatherData")
+            
+            if let appLaunch = appLaunches.first {
+                appLaunch.lastRefreshed = lastUpdated
+            } else {
+                let newAppLaunch = AppLaunch(context: viewContext)
+                newAppLaunch.launchDate = Date()
+                newAppLaunch.lastRefreshed = lastUpdated
+            }
+            
             try viewContext.save()
         } catch {
             let nsError = error as NSError
             fatalError("Unresolved error \(nsError), \(nsError.userInfo)")
         }
-    }
-    
-    func generateChartURL(with data: [CGFloat]) -> URL? {
-        let labels = data.enumerated().map { "\($0.offset + 1)" }
-        let chartData = data.map { "\($0)" }
-        let chartConfig = [
-            "type": "bar",
-            "data": [
-                "labels": labels,
-                "datasets": [
-                    ["label": "Random Data",
-                     "data": chartData]
-                ]
-            ]
-        ] as [String : Any]
-        
-        if let jsonData = try? JSONSerialization.data(withJSONObject: chartConfig),
-           let jsonString = String(data: jsonData, encoding: .utf8) {
-            let urlString = "https://quickchart.io/chart?c=\(jsonString)"
-            return URL(string: urlString.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)!)
-        }
-        return nil
     }
     
     func startTimer() {
@@ -148,6 +203,27 @@ struct DataView: View {
     func stopTimer() {
         timer?.invalidate()
         timer = nil
+    }
+    
+    func weatherIcon(for description: String?) -> String {
+        switch description?.lowercased() {
+        case "clear sky":
+            return "sun.max.fill"
+        case "few clouds":
+            return "cloud.sun.fill"
+        case "scattered clouds", "broken clouds":
+            return "cloud.fill"
+        case "shower rain", "rain":
+            return "cloud.rain.fill"
+        case "thunderstorm":
+            return "cloud.bolt.fill"
+        case "snow":
+            return "snow"
+        case "mist":
+            return "cloud.fog.fill"
+        default:
+            return "cloud.fill"
+        }
     }
 }
 

@@ -9,62 +9,71 @@ struct HomeView: View {
     
     var body: some View {
         NavigationView {
-            VStack(spacing: 30) {
-                Spacer()
+            ZStack {
+                // Voeg hier de achtergrondafbeelding toe
+                Image("360_F_461232389_XCYvca9n9P437nm3FrCsEIapG4SrhufP")
+                    .resizable()
+                    .scaledToFill()
+                    .edgesIgnoringSafeArea(.all) // Zorg ervoor dat de afbeelding de volledige achtergrond bedekt
                 
-                VStack {
-                    Image(systemName: "chart.line.uptrend.xyaxis")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 100, height: 100)
-                        .foregroundColor(.blue)
+                VStack(spacing: 30) {
+                    Spacer()
                     
-                    Text("Welcome to my App")
-                        .font(.largeTitle)
-                        .fontWeight(.bold)
-                        .foregroundColor(.primary)
-                }
-                
-                Text("The ultimate app to fetch and visualize data.")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, 40)
-                
-                Spacer()
-                
-                NavigationLink(destination: DataView()) {
-                    Text("View Data")
-                        .fontWeight(.semibold)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.blue)
+                    VStack {
+                        Image(systemName: "cloud.sun.fill")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 100, height: 100)
+                            .foregroundColor(.yellow)
+                        
+                        Text("Weather App")
+                            .font(.largeTitle)
+                            .fontWeight(.bold)
+                            .foregroundColor(.white)
+                    }
+                    
+                    Text("Get the latest weather updates and forecasts.")
+                        .font(.subheadline)
                         .foregroundColor(.white)
-                        .cornerRadius(10)
+                        .multilineTextAlignment(.center)
                         .padding(.horizontal, 40)
+                    
+                    Spacer()
+                    
+                    NavigationLink(destination: DataView()) {
+                        Text("View Weather")
+                            .fontWeight(.semibold)
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color.blue)
+                            .foregroundColor(.white)
+                            .cornerRadius(10)
+                            .padding(.horizontal, 40)
+                    }
+                    
+                    NavigationLink(destination: DatabaseView()) {
+                        Text("View Database")
+                            .fontWeight(.semibold)
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color.green)
+                            .foregroundColor(.white)
+                            .cornerRadius(10)
+                            .padding(.horizontal, 40)
+                    }
+                    
+                    Spacer()
+                    
+                    if let firstLaunch = appLaunches.first?.launchDate {
+                        Text("First Launch: \(firstLaunch, formatter: DateFormatter.short)")
+                            .font(.caption)
+                            .foregroundColor(.black)
+                    }
                 }
-                
-                NavigationLink(destination: DatabaseView()) {
-                    Text("View Database")
-                        .fontWeight(.semibold)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.green)
-                        .foregroundColor(.white)
-                        .cornerRadius(10)
-                        .padding(.horizontal, 40)
-                }
-                
-                Spacer()
-                
-                if let firstLaunch = appLaunches.first?.launchDate {
-                    Text("First Launch: \(firstLaunch, formatter: DateFormatter.short)")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
+                .padding()
+                .cornerRadius(20)
+                .padding()
             }
-            .padding()
-            .background(Color(UIColor.systemGroupedBackground))
         }
     }
 }
