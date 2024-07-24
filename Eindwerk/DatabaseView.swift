@@ -1,30 +1,25 @@
 import SwiftUI
-import CoreData
 
 struct DatabaseView: View {
-    @Environment(\.managedObjectContext) private var viewContext
     @FetchRequest(
         sortDescriptors: [NSSortDescriptor(keyPath: \AppLaunch.launchDate, ascending: true)],
         animation: .default)
     private var appLaunches: FetchedResults<AppLaunch>
     
     var body: some View {
-        VStack {
-            Text("Database Entries")
-                .font(.largeTitle)
-                .padding()
-            
-            if let firstLaunch = appLaunches.first?.launchDate {
-                Text("First Launch: \(firstLaunch, formatter: DateFormatter.short)")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-            } else {
-                Text("No launch data available")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+        List {
+            Section(header: Text("Database Entries")) {
+                ForEach(appLaunches) { appLaunch in
+                    VStack(alignment: .leading) {
+                        Text("Launch Date: \(appLaunch.launchDate!, formatter: DateFormatter.short)")
+                        if let lastRefreshed = appLaunch.lastRefreshed {
+                            Text("Last Refreshed: \(lastRefreshed, formatter: DateFormatter.short)")
+                        }
+                    }
+                }
             }
         }
-        .padding()
+        .navigationTitle("Database Entries")
     }
 }
 
